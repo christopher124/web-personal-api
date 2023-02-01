@@ -1,7 +1,8 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user");
+const image = require("../utils/image");
 
-// funcion para obtener la informacion de usuario logueado
+// funcition para obtener los dotos del usuario logueado
 async function getMe(req, res) {
   const { user_id } = req.user;
 
@@ -13,10 +14,9 @@ async function getMe(req, res) {
     res.status(200).send(response);
   }
 }
-// funcion para obetener todos los usuarios del sistema
-async function getUser(req, res) {
+// funcition para obtener los dotos de los usuario en el sistema
+async function getUsers(req, res) {
   const { active } = req.query;
-
   let response = null;
 
   if (active === undefined) {
@@ -24,27 +24,30 @@ async function getUser(req, res) {
   } else {
     response = await User.find({ active });
   }
+
   res.status(200).send(response);
 }
-// funcion para crear un usuario en el sistema
+
+// funcition para crear un usuario
 async function createUser(req, res) {
+  // obtenemos el password que ingreso el usuario
   const { password } = req.body;
-  //Encriptar la contraseña del usuario
+  const user = new User({ ...req.body, active: false });
+  // Incriptamos la contraseña del usuario
   const salt = bcrypt.genSaltSync(10);
   const hasPassword = bcrypt.hashSync(password, salt);
-  // Creacion del usuario
-  const user = new User({ ...req.body, active: false, password: hasPassword });
-  // creacion con avatar o no
-  if (req.files.avatar) {
-    //TODO:
-    console.log("Procesar avatar");
-  }
+  user.password = hasPassword;
 
+  // validos si el usuario manda imagen o no
+  if (req.files.avatar) {
+    const imagePath = image.getFilePath(req.files.avatar);
+    user.avatar = imagePath;
+    console.log(req.files.avatar);
+  }
+  // Guardamos el usuario en la base de datos
   user.save((error, userStored) => {
     if (error) {
-      res
-        .status(400)
-        .send({ msg: "Error al crear el usuario, intentelo mas tarde" });
+      res.status(400).send({ msg: "Error al crear el usuario" });
     } else {
       res.status(201).send(userStored);
     }
@@ -53,6 +56,6 @@ async function createUser(req, res) {
 
 module.exports = {
   getMe,
-  getUser,
+  getUsers,
   createUser,
 };
