@@ -80,13 +80,29 @@ async function updateUser(req, res) {
     if (error) {
       res.status(400).send({ msg: "Error al actulizar el usuario" });
     } else {
-      res.status(200).send({ msg: "Actulizacion Correcta" });
+      res.status(200).send({ msg: "Usuario actualizado correcta" });
     }
   });
 }
+
+// funcition para Eliminar un usuario
+
+async function deleteUser(req, res) {
+  const { id } = req.params;
+
+  user.findByIdAndDelete(id, (error) => {
+    if (error) {
+      res.status(400).send({ msg: "Error al eliminar el usuario" });
+    } else {
+      res.status(200).send({ msg: "Usuario eliminado correcta" });
+    }
+  });
+}
+
 module.exports = {
   getMe,
   getUsers,
   createUser,
   updateUser,
+  deleteUser,
 };
